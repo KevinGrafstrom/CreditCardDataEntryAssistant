@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 class OcrWorker(QObject):
-    finished = Signal(list, str, str, str)
+    finished = Signal(list, str, str, str, str, str)
     failed = Signal(str)
 
     def __init__(self, ocr, image_path):
