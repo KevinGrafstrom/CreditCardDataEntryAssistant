@@ -218,6 +218,8 @@ class OcrWindow(QMainWindow):
         self.copy_card_number_button.setEnabled(bool(self.card_number))
         self.copy_cvv_button.setEnabled(bool(self.cvv))
         self.copy_exp_date_button.setEnabled(bool(self.exp_date))
+        self.copy_exp_date_month_button.setEnabled(bool(self.exp_date_month))
+        self.copy_exp_date_year_button.setEnabled(bool(self.exp_date_year))
         self.run_ocr_button.setEnabled(True)
 
     def handle_ocr_failed(self, error_message):
