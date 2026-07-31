@@ -142,6 +142,8 @@ class OcrWindow(QMainWindow):
         self.copy_card_number_button.setEnabled(False)
         self.copy_cvv_button.setEnabled(False)
         self.copy_exp_date_button.setEnabled(False)
+        self.copy_exp_date_month_button.setEnabled(False)
+        self.copy_exp_date_year_button.setEnabled(False)
         self.output_text.clear()
 
     def copy_card_number_to_clipboard(self):
@@ -170,6 +172,8 @@ class OcrWindow(QMainWindow):
         self.copy_card_number_button.setEnabled(False)
         self.copy_cvv_button.setEnabled(False)
         self.copy_exp_date_button.setEnabled(False)
+        self.copy_exp_date_month_button.setEnabled(False)
+        self.copy_exp_date_year_button.setEnabled(False)
 
         QTimer.singleShot(100, self.start_ocr_worker)
 
