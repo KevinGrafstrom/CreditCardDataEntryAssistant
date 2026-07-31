@@ -31,15 +31,17 @@ class OcrWorker(QObject):
             card_number = ""
             cvv = ""
             exp_date = ""
+            exp_date_month = ""
+            exp_date_year = ""
 
             for page in results:
                 for text in page["rec_texts"]:
                     recognized_text.append(text)
 
-                    card_number_matches = re.findall(r"\d{4}\s?\d{4}\s?\d{4}\s?\d{4}", text)
+                    card_number_match = re.fullmatch(r"\s*(\d{4})\s?(\d{4})\s?(\d{4})\s?(\d{4})\s*", text)
 
-                    if len(card_number_matches) > 0:
-                        card_number = re.sub(r"\s+", "", card_number_matches[0])
+                    if card_number_match is not None:
+                        card_number = "".join(card_number_match.groups())
 
                     cvv_matches = re.fullmatch(r"\s*(\d{3})\s*", text)
                     if cvv_matches is not None:
@@ -48,8 +50,10 @@ class OcrWorker(QObject):
                     exp_date_matches = re.fullmatch(r"\s*(\d{2})/(\d{2})\s*", text)
                     if exp_date_matches is not None:
                         exp_date = exp_date_matches.group(1) + exp_date_matches.group(2)
+                        exp_date_month = exp_date_matches.group(1)
+                        exp_date_year = exp_date_matches.group(2)
 
-            self.finished.emit(recognized_text, card_number, cvv, exp_date)
+            self.finished.emit(recognized_text, card_number, cvv, exp_date, exp_date_month, exp_date_year)
         except Exception as error:
             self.failed.emit(str(error))
 
@@ -62,6 +66,10 @@ class OcrWindow(QMainWindow):
         self.card_number = ""
         self.cvv = ""
         self.exp_date = ""
+        self.exp_date_month = ""
+        self.exp_date_year = ""
+        self.thread = None
+        self.worker = None
 
         self.setWindowTitle("OCR Memory")
         self.resize(800, 600)
@@ -89,6 +97,14 @@ class OcrWindow(QMainWindow):
         self.copy_exp_date_button.clicked.connect(self.copy_exp_date_to_clipboard)
         self.copy_exp_date_button.setEnabled(False)
 
+        self.copy_exp_date_month_button = QPushButton("Copy Expiry Date Month to Clipboard")
+        self.copy_exp_date_month_button.clicked.connect(self.copy_exp_date_month_to_clipboard)
+        self.copy_exp_date_month_button.setEnabled(False)
+
+        self.copy_exp_date_year_button = QPushButton("Copy Expiry Date Year to Clipboard")
+        self.copy_exp_date_year_button.clicked.connect(self.copy_exp_date_year_to_clipboard)
+        self.copy_exp_date_year_button.setEnabled(False)
+
         self.output_text = QTextEdit()
         self.output_text.setPlaceholderText("OCR results will appear here...")
 
@@ -100,6 +116,8 @@ class OcrWindow(QMainWindow):
         layout.addWidget(self.copy_card_number_button)
         layout.addWidget(self.copy_cvv_button)
         layout.addWidget(self.copy_exp_date_button)
+        layout.addWidget(self.copy_exp_date_month_button)
+        layout.addWidget(self.copy_exp_date_year_button)
         layout.addWidget(self.output_text)
 
         container = QWidget()
@@ -135,6 +153,12 @@ class OcrWindow(QMainWindow):
     def copy_exp_date_to_clipboard(self):
         QApplication.clipboard().setText(self.exp_date)
 
+    def copy_exp_date_month_to_clipboard(self):
+        QApplication.clipboard().setText(self.exp_date_month)
+
+    def copy_exp_date_year_to_clipboard(self):
+        QApplication.clipboard().setText(self.exp_date_year)
+
     def run_ocr(self):
         if not self.image_path:
             return
@@ -167,10 +191,12 @@ class OcrWindow(QMainWindow):
 
         self.thread.start()
 
-    def handle_ocr_finished(self, recognized_text, card_number, cvv, exp_date):
+    def handle_ocr_finished(self, recognized_text, card_number, cvv, exp_date, exp_date_month, exp_date_year):
         self.card_number = card_number
         self.cvv = cvv
         self.exp_date = exp_date
+        self.exp_date_month = exp_date_month
+        self.exp_date_year = exp_date_year
 
         all_text = "\n".join(recognized_text)
 
@@ -179,6 +205,8 @@ class OcrWindow(QMainWindow):
             f"\n card number: {self.card_number}"
             f"\n cvv: {self.cvv}"
             f"\n exp date: {self.exp_date}"
+            f"\n exp date month: {self.exp_date_month}"
+            f"\n exp date year: {self.exp_date_year}"
         )
 
         if recognized_text:
